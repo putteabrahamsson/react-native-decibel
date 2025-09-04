@@ -1,0 +1,17 @@
+{
+  "cxxNamespace": ["decibel"],
+  "ios": {
+    "iosModuleName": "Decibel"
+  },
+  "android": {
+    "androidNamespace": ["decibel"],
+    "androidCxxLibName": "decibel"
+  },
+  "autolinking": {
+    "Decibel": {
+      "swift": "Decibel",
+      "kotlin": "Decibel"
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
