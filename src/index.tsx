@@ -1,4 +1,5 @@
 import { NitroModules } from 'react-native-nitro-modules';
+import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import type { Decibel } from './Decibel.nitro';
 
 const DecibelHybridObject = NitroModules.createHybridObject<Decibel>('Decibel');
@@ -17,6 +18,15 @@ export function stop(): void {
 
 export function onDecibelUpdate(listener: (decibel: number) => void): void {
   return DecibelHybridObject.onDecibelUpdate(listener);
+}
+
+export function playBackgroundSound(asset: number): void {
+  const { uri } = resolveAssetSource(asset);
+  return DecibelHybridObject.playBackgroundSound(uri);
+}
+
+export function stopBackgroundSound(): void {
+  return DecibelHybridObject.stopBackgroundSound();
 }
 
 export function removeDecibelUpdateListener(

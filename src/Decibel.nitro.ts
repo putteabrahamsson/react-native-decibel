@@ -5,6 +5,8 @@ export interface Decibel
   requestPermission(): Promise<string>;
   start(interval?: number): void;
   stop(): void;
+  playBackgroundSound(filePath: string): void;
+  stopBackgroundSound(): void;
 
   onDecibelUpdate(listener: (decibel: number) => void): void;
   removeDecibelUpdateListener(listener: (decibel: number) => void): void;

@@ -3,11 +3,13 @@ import NitroModules
 
 class Decibel: HybridDecibelSpec {
     private var audioRecorder: AVAudioRecorder!
+    private var backgroundSoundPlayer: BackgroundSound!
     private var timer: Timer?
     private var decibelListeners: [(Double) -> Void] = []
     
     override init() {
       super.init()
+      backgroundSoundPlayer = BackgroundSound()
       setupRecorder()
     }
 
@@ -20,8 +22,8 @@ class Decibel: HybridDecibelSpec {
     }
 
     // Request microphone permission
-    public func requestPermission() throws -> Promise<String> {
-        return Promise.async {
+        public func requestPermission() throws -> Promise<String> {
+            return Promise.async {
             var permission = "undetermined"
 
             AVAudioSession.sharedInstance().requestRecordPermission { granted in
@@ -49,7 +51,7 @@ class Decibel: HybridDecibelSpec {
         do {
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
             audioRecorder.isMeteringEnabled = true
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers])
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers, .defaultToSpeaker])
             try AVAudioSession.sharedInstance().setActive(true)
             audioRecorder.prepareToRecord()
         } catch {
@@ -75,8 +77,13 @@ class Decibel: HybridDecibelSpec {
         timer?.invalidate()
         audioRecorder.stop()
     }
+
+    func playBackgroundSound(filePath: String) {
+        backgroundSoundPlayer.playBackgroundSound(filePath: filePath)
+    }
+
+    func stopBackgroundSound() {
+        backgroundSoundPlayer.pauseBackgroundSound()
+    }
 }
-
-    
-
 
