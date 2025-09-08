@@ -21,6 +21,10 @@ export default function App() {
     });
   }, []);
 
+  const playBg = () => {
+    playBackgroundSound(require('./assets/white-noise.mp3'));
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={req} style={styles.btn}>
@@ -35,10 +39,7 @@ export default function App() {
         <Text>Stop</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => playBackgroundSound(require('./white-noise.mp3'))}
-        style={styles.btn}
-      >
+      <TouchableOpacity onPress={playBg} style={styles.btn}>
         <Text>Play Background Sound</Text>
       </TouchableOpacity>
 

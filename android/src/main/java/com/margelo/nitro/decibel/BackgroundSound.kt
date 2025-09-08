@@ -1,58 +1,46 @@
-import android.content.Context
+package com.margelo.nitro.decibel
+
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
 
-class BackgroundSound(private val context: Context) {
+class BackgroundSound() {
 
-    private var player: ExoPlayer? = null
+    private var mediaPlayer: MediaPlayer? = null
 
-    /**
-     * Spela ljudfil från URI (lokal fil eller nätverk)
-     */
+
     fun playBackgroundSound(filePath: String) {
-        stopBackgroundSound() // stoppa eventuell befintlig uppspelning
+         stopBackgroundSound() 
 
         try {
-            val uri = Uri.parse(filePath)
-            player = ExoPlayer.Builder(context).build().also { exo ->
-                val mediaItem = MediaItem.fromUri(uri)
-                exo.setMediaItem(mediaItem)
-                exo.repeatMode = Player.REPEAT_MODE_OFF
-                exo.playWhenReady = true
-                exo.prepare()
+            mediaPlayer = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setDataSource(filePath)
+
+                isLooping = true
+                prepare()
+                start()
             }
 
             Log.d("BackgroundSound", "Playing background sound: $filePath")
+
         } catch (e: Exception) {
-            Log.e("BackgroundSound", "Failed to play background sound: $e")
+            Log.e("BackgroundSound", "Failed to play sound: $e")
         }
     }
-
-    /**
-     * Pausa uppspelningen
-     */
-    fun pauseBackgroundSound() {
-        player?.pause()
-        Log.d("BackgroundSound", "Paused background sound")
-    }
-
-    /**
-     * Återuppta uppspelningen
-     */
-    fun resumeBackgroundSound() {
-        player?.play()
-        Log.d("BackgroundSound", "Resumed background sound")
-    }
-
-    /**
-     * Stoppa och släpp resurser
-     */
+    
     fun stopBackgroundSound() {
-        player?.release()
-        player = null
-        Log.d("BackgroundSound", "Stopped background sound")
+        mediaPlayer?.let {
+            it.stop()
+            it.release()
+            mediaPlayer = null
+            Log.d("BackgroundSound", "Stopped background sound")
+        }
     }
 }

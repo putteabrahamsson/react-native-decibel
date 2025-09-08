@@ -2,6 +2,7 @@ package com.margelo.nitro.decibel
 
 import com.facebook.proguard.annotations.DoNotStrip
 import com.margelo.nitro.core.Promise
+import com.margelo.nitro.decibel.BackgroundSound
 
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -10,13 +11,15 @@ import java.util.*
 import kotlin.math.log10
 import kotlin.math.sqrt
 
+
 @DoNotStrip
 class Decibel : HybridDecibelSpec() {
-    private var audioRecord: AudioRecord? = null
-    private var bufferSize = 0
-    private var isRecording = false
-    private var timer: Timer? = null
-    private val listeners = mutableListOf<(Double) -> Unit>()
+  private var backgroundSound: BackgroundSound? = BackgroundSound()
+  private var audioRecord: AudioRecord? = null
+  private var bufferSize = 0
+  private var isRecording = false
+  private var timer: Timer? = null
+  private val listeners = mutableListOf<(Double) -> Unit>()
 
   override fun requestPermission(): Promise<String> {
     return Promise.resolved("requested_on_JS_thread")
@@ -53,8 +56,8 @@ class Decibel : HybridDecibelSpec() {
                 }
                 val rms = sqrt(sum / read)
 
-                // Skala så att dB är negativt, likt iOS (-160 → 0)
-                val maxAmplitude = 32768.0 // maxvärde för PCM16
+                // set dB to negative value, similar to iOS (-160 → 0)
+                val maxAmplitude = 32768.0 
                 val dB = if (rms > 0) 20 * log10(rms / maxAmplitude) else -160.0
 
                 listeners.forEach { it(dB) }
@@ -73,18 +76,18 @@ class Decibel : HybridDecibelSpec() {
   }
 
   override fun playBackgroundSound(filePath: String) {
-
+    backgroundSound?.playBackgroundSound(filePath)
   }
 
   override fun stopBackgroundSound() {
-
+    backgroundSound?.stopBackgroundSound()
   }
 
   override fun onDecibelUpdate(listener: (Double) -> Unit) {
-    listeners.add(listener)
+    listeners?.add(listener)
   }
 
   override fun removeDecibelUpdateListener(listener: (Double) -> Unit) {
-    listeners.clear()
+    listeners?.clear()
   }
 }

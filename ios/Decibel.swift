@@ -83,7 +83,7 @@ class Decibel: HybridDecibelSpec {
     }
 
     func stopBackgroundSound() {
-        backgroundSoundPlayer.pauseBackgroundSound()
+        backgroundSoundPlayer.stopBackgroundSound()
     }
 }
 
