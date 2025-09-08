@@ -1,10 +1,17 @@
 import { NitroModules } from 'react-native-nitro-modules';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import type { Decibel } from './Decibel.nitro';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 const DecibelHybridObject = NitroModules.createHybridObject<Decibel>('Decibel');
 
 export async function requestPermission(): Promise<string> {
+  if (Platform.OS === 'android') {
+    return await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+    );
+  }
+
   return await DecibelHybridObject.requestPermission();
 }
 
