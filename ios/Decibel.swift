@@ -49,15 +49,22 @@ class Decibel: HybridDecibelSpec {
         do {
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
             audioRecorder.isMeteringEnabled = true
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers, .defaultToSpeaker])
-            try AVAudioSession.sharedInstance().setActive(true)
-            audioRecorder.prepareToRecord()
         } catch {
             print("Error setting up recorder: \(error)")
         }
     }
 
     func start(interval: Double? = 0.2) {
+        // Re-activate and configure audio session before starting
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers, .defaultToSpeaker])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Error activating audio session: \(error)")
+        }
+        
+        // Prepare recorder before recording (required after stop)
+        audioRecorder.prepareToRecord()
         audioRecorder.record()
 
         timer = Timer.scheduledTimer(withTimeInterval: interval ?? 0.2, repeats: true) { [weak self] _ in
@@ -73,6 +80,7 @@ class Decibel: HybridDecibelSpec {
 
     func stop() {
         timer?.invalidate()
+        timer = nil
         audioRecorder.stop()
     }
 }

@@ -6,6 +6,7 @@ import com.margelo.nitro.core.Promise
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.util.Log
 import java.util.*
 import kotlin.math.log10
 import kotlin.math.sqrt
@@ -24,6 +25,11 @@ class Decibel : HybridDecibelSpec() {
   }
 
   override fun start(interval: Double?) {
+    // Stop any existing recording first
+    if (isRecording) {
+      stop()
+    }
+
     val period = interval?.times(1000)?.toLong() ?: 200L
     bufferSize = AudioRecord.getMinBufferSize(
           44100,
@@ -31,44 +37,70 @@ class Decibel : HybridDecibelSpec() {
           AudioFormat.ENCODING_PCM_16BIT
     )
 
-    audioRecord = AudioRecord(
-        MediaRecorder.AudioSource.MIC,
-        44100,
-        AudioFormat.CHANNEL_IN_MONO,
-        AudioFormat.ENCODING_PCM_16BIT,
-        bufferSize
-    )
+    try {
+      audioRecord = AudioRecord(
+          MediaRecorder.AudioSource.MIC,
+          44100,
+          AudioFormat.CHANNEL_IN_MONO,
+          AudioFormat.ENCODING_PCM_16BIT,
+          bufferSize
+      )
 
-    audioRecord?.startRecording()
-    isRecording = true
+      // Check if AudioRecord was initialized properly
+      if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
+        Log.e("Decibel", "AudioRecord initialization failed")
+        audioRecord?.release()
+        audioRecord = null
+        return
+      }
 
-    timer = Timer()
-    timer?.scheduleAtFixedRate(object : TimerTask() {
-        override fun run() {
-            val buffer = ShortArray(bufferSize)
-            val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
-            if (read > 0) {
-                var sum = 0.0
-                for (i in 0 until read) {
-                    sum += buffer[i] * buffer[i]
-                }
-                val rms = sqrt(sum / read)
+      audioRecord?.startRecording()
+      isRecording = true
 
-                // set dB to negative value, similar to iOS (-160 → 0)
-                val maxAmplitude = 32768.0 
-                val dB = if (rms > 0) 20 * log10(rms / maxAmplitude) else -160.0
+      timer = Timer()
+      timer?.scheduleAtFixedRate(object : TimerTask() {
+          override fun run() {
+              if (!isRecording || audioRecord == null) {
+                  return
+              }
 
-                listeners.forEach { it(dB) }
-            }
-        }
-    }, 0L, period)
+              val buffer = ShortArray(bufferSize)
+              val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
+              
+              if (read > 0) {
+                  var sum = 0.0
+                  for (i in 0 until read) {
+                      sum += buffer[i] * buffer[i]
+                  }
+                  val rms = sqrt(sum / read)
+
+                  // set dB to negative value, similar to iOS (-160 → 0)
+                  val maxAmplitude = 32768.0 
+                  val dB = if (rms > 0) 20 * log10(rms / maxAmplitude) else -160.0
+
+                  listeners.forEach { it(dB) }
+              } else if (read < 0) {
+                  Log.e("Decibel", "Error reading audio data: $read")
+              }
+          }
+      }, 0L, period)
+    } catch (e: Exception) {
+      Log.e("Decibel", "Failed to start recording: ${e.message}")
+      stop()
+    }
   }
 
   override fun stop() {
     timer?.cancel()
     timer = null
     isRecording = false
-    audioRecord?.stop()
+    
+    try {
+      audioRecord?.stop()
+    } catch (e: Exception) {
+      Log.e("Decibel", "Error stopping AudioRecord: ${e.message}")
+    }
+    
     audioRecord?.release()
     audioRecord = null
   }
