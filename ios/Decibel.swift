@@ -3,13 +3,11 @@ import NitroModules
 
 class Decibel: HybridDecibelSpec {
     private var audioRecorder: AVAudioRecorder!
-    private var backgroundSoundPlayer: BackgroundSound!
     private var timer: Timer?
     private var decibelListeners: [(Double) -> Void] = []
     
     override init() {
       super.init()
-      backgroundSoundPlayer = BackgroundSound()
       setupRecorder()
     }
 
@@ -76,14 +74,6 @@ class Decibel: HybridDecibelSpec {
     func stop() {
         timer?.invalidate()
         audioRecorder.stop()
-    }
-
-    func playBackgroundSound(filePath: String) {
-        backgroundSoundPlayer.playBackgroundSound(filePath: filePath)
-    }
-
-    func stopBackgroundSound() {
-        backgroundSoundPlayer.stopBackgroundSound()
     }
 }
 

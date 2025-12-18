@@ -5,8 +5,6 @@ import {
   start,
   stop,
   onDecibelUpdate,
-  playBackgroundSound,
-  stopBackgroundSound,
 } from 'react-native-decibel';
 
 export default function App() {
@@ -17,13 +15,9 @@ export default function App() {
 
   useEffect(() => {
     onDecibelUpdate((decibel) => {
-      console.log(decibel, 'deccy');
+      console.log(decibel);
     });
   }, []);
-
-  const playBg = () => {
-    playBackgroundSound(require('./assets/white-noise.mp3'));
-  };
 
   return (
     <View style={styles.container}>
@@ -31,20 +25,12 @@ export default function App() {
         <Text>Request permission</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => start(0.1)} style={styles.btn}>
+      <TouchableOpacity onPress={() => start(0.5)} style={styles.btn}>
         <Text>Start</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={stop} style={styles.btn}>
         <Text>Stop</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={playBg} style={styles.btn}>
-        <Text>Play Background Sound</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={stopBackgroundSound} style={styles.btn}>
-        <Text>Stop Background Sound</Text>
       </TouchableOpacity>
     </View>
   );

@@ -2,7 +2,6 @@ package com.margelo.nitro.decibel
 
 import com.facebook.proguard.annotations.DoNotStrip
 import com.margelo.nitro.core.Promise
-import com.margelo.nitro.decibel.BackgroundSound
 
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -14,7 +13,6 @@ import kotlin.math.sqrt
 
 @DoNotStrip
 class Decibel : HybridDecibelSpec() {
-  private var backgroundSound: BackgroundSound? = BackgroundSound()
   private var audioRecord: AudioRecord? = null
   private var bufferSize = 0
   private var isRecording = false
@@ -73,14 +71,6 @@ class Decibel : HybridDecibelSpec() {
     audioRecord?.stop()
     audioRecord?.release()
     audioRecord = null
-  }
-
-  override fun playBackgroundSound(filePath: String) {
-    backgroundSound?.playBackgroundSound(filePath)
-  }
-
-  override fun stopBackgroundSound() {
-    backgroundSound?.stopBackgroundSound()
   }
 
   override fun onDecibelUpdate(listener: (Double) -> Unit) {
