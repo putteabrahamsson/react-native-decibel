@@ -2,14 +2,9 @@ import AVFoundation
 import NitroModules
 
 class Decibel: HybridDecibelSpec {
-    private var audioRecorder: AVAudioRecorder!
+    private var audioRecorder: AVAudioRecorder?
     private var timer: Timer?
     private var decibelListeners: [(Double) -> Void] = []
-    
-    override init() {
-      super.init()
-      setupRecorder()
-    }
 
     public func onDecibelUpdate(listener: @escaping (Double) -> Void) {
         decibelListeners.append(listener)
@@ -36,7 +31,7 @@ class Decibel: HybridDecibelSpec {
         }
     }
 
-    private func setupRecorder() {
+    private func createNewRecorder() -> AVAudioRecorder? {
         let url = URL(fileURLWithPath: "/dev/null") 
 
         let settings: [String: Any] = [
@@ -47,30 +42,44 @@ class Decibel: HybridDecibelSpec {
         ]
 
         do {
-            audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-            audioRecorder.isMeteringEnabled = true
+            let recorder = try AVAudioRecorder(url: url, settings: settings)
+            recorder.isMeteringEnabled = true
+            return recorder
         } catch {
-            print("Error setting up recorder: \(error)")
+            print("Error creating recorder: \(error)")
+            return nil
         }
     }
 
     func start(interval: Double? = 0.2) {
-        // Re-activate and configure audio session before starting
+        // Stop any existing recording
+        stop()
+        
+        // Re-activate and configure audio session
         do {
             try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default, options: [.mixWithOthers, .defaultToSpeaker])
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             print("Error activating audio session: \(error)")
+            return
         }
         
-        // Prepare recorder before recording (required after stop)
-        audioRecorder.prepareToRecord()
-        audioRecorder.record()
+        // Create a fresh new recorder instance
+        guard let recorder = createNewRecorder() else {
+            print("Failed to create audio recorder")
+            return
+        }
+        
+        audioRecorder = recorder
+        
+        // Prepare and start recording
+        audioRecorder?.prepareToRecord()
+        audioRecorder?.record()
 
         timer = Timer.scheduledTimer(withTimeInterval: interval ?? 0.2, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            self.audioRecorder.updateMeters()
-            let dB = Double(self.audioRecorder.averagePower(forChannel: 0))
+            guard let self = self, let recorder = self.audioRecorder else { return }
+            recorder.updateMeters()
+            let dB = Double(recorder.averagePower(forChannel: 0))
 
             for listener in self.decibelListeners {
               listener(dB)
@@ -81,7 +90,8 @@ class Decibel: HybridDecibelSpec {
     func stop() {
         timer?.invalidate()
         timer = nil
-        audioRecorder.stop()
+        audioRecorder?.stop()
+        audioRecorder = nil
     }
 }
 

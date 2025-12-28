@@ -25,10 +25,8 @@ class Decibel : HybridDecibelSpec() {
   }
 
   override fun start(interval: Double?) {
-    // Stop any existing recording first
-    if (isRecording) {
-      stop()
-    }
+    // Always stop and clean up any existing recording first
+    stop()
 
     val period = interval?.times(1000)?.toLong() ?: 200L
     bufferSize = AudioRecord.getMinBufferSize(
@@ -38,6 +36,7 @@ class Decibel : HybridDecibelSpec() {
     )
 
     try {
+      // Create a completely new AudioRecord instance
       audioRecord = AudioRecord(
           MediaRecorder.AudioSource.MIC,
           44100,
